@@ -4,6 +4,12 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use App\Http\Controllers\VendorController;
+use App\Http\Controllers\VendorPortalController;
+use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\ApprovedVendorsController;
+use App\Models\Vendor;
+use App\Services\VendorWorkflowService;
 
 Route::get('/', function () {
     return view('welcome');
@@ -27,10 +33,33 @@ Route::middleware('auth')->group(function () {
             'role' => 'required|in:initiator,vendor,checker,procurement,legal,finance,directors'
         ]);
 
-        // This is the BEST way — removes all current roles and assigns exactly one
+       
         $user->syncRoles($request->role);
 
-        return redirect()->back()->with('success', 'You are now acting as: ' . ucfirst($request->role));
-    })->name('switch.role');
+            return redirect()->back()->with('success', 'You are now acting as: ' . ucfirst($request->role));
+        })->name('switch.role');
+
+        // 1. Initiator – Create Vendor
+        Route::view('/initiator/create', 'vendors.create')->name('vendor.create');
+        Route::post('/vendor/store', VendorController::class)->name('vendor.store');
+
+        // 2. Vendor Portal
+        Route::get('/vendors/portal', [VendorPortalController::class, 'edit'])->name('vendor.portal');
+        Route::post('/vendor/portal/submit', [VendorPortalController::class, 'submit'])->name('vendor.submit');
+
+        // 3. Review Dashboards (shared controller)
+        Route::get('/review/{stage}', [ReviewController::class, 'index'])->name('review.stage');
+        Route::post('/review/approve/{vendor}', [ReviewController::class, 'approve'])->name('review.approve');
+        Route::post('/review/reject/{vendor}', [ReviewController::class, 'reject'])->name('review.reject');
+
+        // 4. Approved Masterlist
+        Route::get('/approved-vendors', ApprovedVendorsController::class)->name('approved.vendors');
 });
+
+// routes/web.php
+Route::post('/vendor/send-to-vendor/{vendor}', function (Vendor $vendor, VendorWorkflowService $workflow) {
+    $workflow->sendToVendor($vendor);
+    return back()->with('success', 'Vendor sent to portal!');
+})->name('vendor.send');
+
 require __DIR__.'/auth.php';

@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Auth;
 
 class VendorWorkflowService
 {
-    // Exact order of stages – this is the pipeline
     private array $stageOrder = [
         'new',
         'with_vendor',
@@ -21,76 +20,88 @@ class VendorWorkflowService
         'approved',
     ];
 
-    // Called when Vendor clicks "Submit" in portal
     public function submitByVendor(Vendor $vendor): void
     {
         $this->moveToNextStage($vendor, 'Submitted', 'Vendor submitted completed details');
     }
 
-    // Called by any reviewer when clicking "Approve"
     public function approve(Vendor $vendor, ?string $comment = null): void
     {
         $this->moveToNextStage($vendor, 'Approved', $comment);
     }
 
-    // Called when reviewer clicks "Reject"
     public function reject(Vendor $vendor, string $comment): void
     {
-        $currentIndex = array_search($vendor->current_stage, $this->stageOrder);
-        $previousIndex = max(1, $currentIndex - 1); // Never go before "with_vendor"
-        $previousStage = $this->stageOrder[$previousIndex];
-
         $this->logHistory($vendor, $vendor->current_stage, 'Rejected', $comment);
-        $vendor->update(['current_stage' => $previousStage]);
+        $vendor->update(['current_stage' => VendorStage::WithVendor]);
+    }
+
+    public function sendToVendor(Vendor $vendor): void
+    {
+        $this->logHistory($vendor, $vendor->current_stage, 'Sent to Vendor', 'Initiator sent record for completion');
+        $vendor->update(['current_stage' => VendorStage::WithVendor]);
     }
 
     private function moveToNextStage(Vendor $vendor, string $action, ?string $comment = null): void
     {
-        $currentIndex = array_search($vendor->current_stage, $this->stageOrder);
-        $nextStage = $this->stageOrder[$currentIndex + 1] ?? null;
+        $currentValue = $this->getStageValue($vendor->current_stage);
+        $currentIndex = array_search($currentValue, $this->stageOrder);
+        $nextValue = $this->stageOrder[$currentIndex + 1] ?? null;
 
         $this->logHistory($vendor, $vendor->current_stage, $action, $comment);
 
-        if ($nextStage === 'approved') {
+        if ($nextValue === 'approved') {
             $vendor->update([
-                'current_stage' => 'approved',
-                'approved_at' => now(),
+                'current_stage' => VendorStage::Approved,   // FIXED
+                'approved_at'    => now(),
             ]);
         } else {
-            $vendor->update(['current_stage' => $nextStage]);
+            $vendor->update([
+                'current_stage' => VendorStage::tryFrom($nextValue) 
+                    ?? VendorStage::from($nextValue),       // Safe fallback
+            ]);
         }
     }
 
-    private function logHistory(Vendor $vendor, string $stage, string $action, ?string $comment = null): void
+    private function logHistory(Vendor $vendor, string|VendorStage $stage, string $action, ?string $comment = null): void
     {
+        $stageValue = $stage instanceof VendorStage ? $stage->value : $stage;
+
         VendorHistory::create([
-            'vendor_id' => $vendor->id,
-            'stage' => $stage,
-            'action' => $action,
-            'comment' => $comment,
-            'performed_by' => Auth::id(),
+            'vendor_id'     => $vendor->id,
+            'stage'         => $stageValue,
+            'action'        => $action,
+            'comment'       => $comment,
+            'performed_by'  => Auth::id(),
         ]);
     }
 
-    // Used for "Who Acts Next" label
+    private function getStageValue(string|VendorStage $stage): string
+    {
+        return $stage instanceof VendorStage ? $stage->value : $stage;
+    }
+
     public function getNextActionLabel(Vendor $vendor): string
     {
-        return match ($vendor->current_stage) {
-            'new'              => 'Waiting for Vendor to fill details',
-            'with_vendor'      => 'Vendor is completing information',
-            'checker_review'   => 'Waiting for Checker',
-            'procurement_review' => 'Waiting for Procurement',
-            'legal_review'     => 'Waiting for Legal',
-            'finance_review'   => 'Waiting for Finance',
-            'directors_review' => 'Waiting for Directors',
-            'approved'         => 'Fully Approved',
-            'rejected'         => 'Rejected',
-            default            => 'Unknown',
+        return match ($this->getStageValue($vendor->current_stage)) {
+            'new'               => 'Waiting for Initiator to send',
+            'with_vendor'       => 'Vendor is completing information',
+            'checker_review'    => 'Waiting for Checker',
+            'procurement_review'=> 'Waiting for Procurement',
+           UDO            => 'Waiting for Legal',
+            'finance_review'    => 'Waiting for Finance',
+            'directors_review'  => 'Waiting for Directors',
+            'approved'          => 'Fully Approved',
+            default             => 'Pending Review',
         };
     }
 
     public function getCurrentStageLabel(Vendor $vendor): string
     {
-        return VendorStage::tryFrom($vendor->current_stage)?->label() ?? ucwords(str_replace('_', ' ', $vendor->current_stage));
+        $stage = $vendor->current_stage;
+
+        return ($stage instanceof VendorStage)
+            ? $stage->label()
+            : (VendorStage::tryFrom($stage)?->label() ?? ucwords(str_replace('_', ' ', $stage)));
     }
 }
