@@ -1,73 +1,65 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="h3 fw-bold text-dark mb-0">Vendor Management System – Dashboard</h2>
+        <h2 class="mb-0 h3 fw-bold text-dark">Vendor Management System – Dashboard</h2>
     </x-slot>
 
     <div class="py-6">
         <div class="container-fluid">
             <div class="row g-5">
 
-                <!-- DEMO ROLE SWITCHER (Your killer feature) -->
-                <div class="col-12 text-center mb-4">
+                <!-- DEMO ROLE SWITCHER -->
+                <div class="mb-4 text-center col-12">
                     <x-role-switcher class="d-inline-block" />
                 </div>
 
-                <!-- SUCCESS MESSAGE -->
                 @if(session('success'))
-                    <div class="col-12">
-                        <div class="alert alert-success alert-dismissible fade show shadow-sm rounded-4 border-0">
-                            <strong>{{ session('success') }}</strong>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
+                    <div class="alert alert-success alert-dismissible fade show">
+                        {{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 @endif
 
-                <!-- CURRENT DEMO ROLE (for clarity) -->
                 @if(session('demo_role'))
-                    <div class="col-12 text-center">
-                        <span class="badge bg-primary fs-5 px-4 py-2">
+                    <div class="mb-4 text-center">
+                        <span class="px-4 py-2 badge bg-primary fs-5">
                             Demo Mode: {{ ucfirst(session('demo_role')) }}
                         </span>
                     </div>
                 @endif
 
-                <!-- ================================================================= -->
-                <!-- 1. INITIATOR DASHBOARD                                            -->
-                <!-- ================================================================= -->
+                {{-- ======================================== --}}
+                {{-- 1. INITIATOR SECTION --}}
+                {{-- ======================================== --}}
                 @if(auth()->user()->hasRole('initiator') || session('demo_role') === 'initiator')
-                    <div class="col-12 text-center my-5">
-                        <a href="{{ route('vendor.create') }}"
-                           class="btn btn-primary btn-lg px-6 py-3 shadow-lg fw-bold">
-                            <i class="fas fa-plus-circle me-2"></i> Create New Vendor
+                    <div class="my-5 text-center col-12">
+                        <a href="{{ route('vendor.create') }}" class="px-6 py-4 shadow-lg btn btn-primary btn-lg fw-bold">
+                            Create New Vendor
                         </a>
                     </div>
 
                     @php
-                        $pendingVendors = \App\Models\Vendor::where('current_stage', 'new')
-                                            ->where('created_by', auth()->id())
-                                            ->latest()
-                                            ->get();
+                        $pending = \App\Models\Vendor::where('current_stage', 'new')
+                            ->where('created_by', auth()->id())
+                            ->latest()
+                            ->get();
                     @endphp
 
-                    @if($pendingVendors->count() > 0)
+                    @if($pending->count() > 0)
                         <div class="col-12">
-                            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
-                                <div class="card-header bg-warning text-dark py-4">
+                            <div class="border-0 shadow-lg card rounded-4">
+                                <div class="py-4 card-header bg-warning text-dark">
                                     <h4 class="mb-0 fw-bold">Pending: Send to Vendor</h4>
-                                    <p class="mb-0">These vendors are waiting for you to start the onboarding process.</p>
                                 </div>
-                                <div class="card-body p-4">
-                                    @foreach($pendingVendors as $vendor)
-                                        <div class="d-flex justify-content-between align-items-center p-4 bg-light rounded-3 mb-3 shadow-sm">
+                                <div class="p-4 card-body">
+                                    @foreach($pending as $vendor)
+                                        <div class="p-4 mb-3 shadow-sm d-flex justify-content-between align-items-center bg-light rounded-3">
                                             <div>
                                                 <h5 class="mb-1">{{ $vendor->vendor_name }}</h5>
-                                                <p class="text-muted mb-0">{{ $vendor->email }} • Created {{ $vendor->created_at->diffForHumans() }}</p>
+                                                <small class="text-muted">{{ $vendor->email }}</small>
                                             </div>
-                                            <form method="POST" action="{{ route('vendor.send', $vendor) }}" class="d-inline">
+                                            <form method="POST" action="{{ route('vendor.send', $vendor) }}">
                                                 @csrf
-                                                <button type="submit" class="btn btn-success btn-lg fw-bold px-5">
-                                                    Send to Vendor
-                                                </button>
+                                                <button class="px-5 btn btn-success fw-bold">Send to Vendor</button>
                                             </form>
                                         </div>
                                     @endforeach
@@ -77,98 +69,104 @@
                     @endif
                 @endif
 
-                <!-- ================================================================= -->
-                <!-- 2. VENDOR DASHBOARD                                               -->
-                <!-- ================================================================= -->
-                @if(auth()->user()->hasRole('vendor') || session('demo_role') === 'vendor')
-                    @php
-                        $vendorRecord = \App\Models\Vendor::where('email', auth()->user()->email)->first();
-                    @endphp
+                {{-- ======================================== --}}
+{{-- 2. VENDOR PORTAL – SHOW ONLY IF EMAIL MATCHES A VENDOR IN "with_vendor" STAGE --}}
+{{-- ======================================== --}}
+@php
+    $vendorRecord = \App\Models\Vendor::where('email', auth()->user()->email)
+        ->where('current_stage', 'with_vendor')
+        ->first();
 
-                    <div class="col-12">
-                        @if(!$vendorRecord)
-                            <div class="card border-0 shadow-sm rounded-4 text-center p-8">
-                                <p class="text-muted fs-4">No vendor profile found for your email.</p>
-                            </div>
+    $underReviewRecord = \App\Models\Vendor::where('email', auth()->user()->email)
+        ->where('current_stage', '!=', 'with_vendor')
+        ->where('current_stage', '!=', 'new')
+        ->first();
+@endphp
 
-                        @elseif($vendorRecord->current_stage === 'new')
-                            <div class="card bg-gradient-warning text-white rounded-4 shadow-lg">
-                                <div class="card-body text-center py-8">
-                                    <h3>Awaiting Initiator Action</h3>
-                                    <p class="fs-5">Your profile has been created and is waiting to be sent to you.</p>
-                                    <span class="badge bg-white text-warning fs-5 px-5 py-3">Status: New</span>
-                                </div>
-                            </div>
-
-                        @elseif($vendorRecord->current_stage === 'with_vendor')
-                            <div class="card bg-gradient-orange text-white rounded-4 shadow-lg">
-                                <div class="card-body text-center py-8">
-                                    <h3 class="fw-bold">Action Required</h3>
-                                    <p class="fs-4 mb-5">Please complete your company profile to begin the approval process.</p>
-                                    <a href="{{ route('vendor.portal') }}"
-                                       class="btn btn-light btn-lg px-8 py-4 fw-bold shadow">
-                                        Complete Profile Now
-                                    </a>
-                                </div>
-                            </div>
-
-                        @else
-                            <div class="card bg-success text-white rounded-4 shadow-lg">
-                                <div class="card-body text-center py-7">
-                                    <h4>Your profile is under review</h4>
-                                    <p class="fs-5 mb-0">
-                                        Current Stage: <strong>{{ ucwords(str_replace('_', ' ', $vendorRecord->current_stage)) }}</strong>
-                                    </p>
-                                </div>
-                            </div>
-                        @endif
+@if($vendorRecord || $underReviewRecord)
+    <div class="col-12">
+        @if($vendorRecord)
+            <!-- Vendor needs to fill details -->
+            <div class="py-8 text-center text-white shadow-lg card bg-gradient-primary rounded-4">
+                <div class="card-body">
+                    <h2 class="mb-4 fw-bold">Welcome, {{ $vendorRecord->vendor_name ?? 'Vendor' }}!</h2>
+                    <h4>Action Required</h4>
+                    <p class="mb-4 fs-5">Please complete your company profile to begin the approval process.</p>
+                    <a href="{{ route('vendor.portal') }}" class="px-8 py-3 btn btn-light btn-lg fw-bold">
+                        Complete Profile Now
+                    </a>
+                </div>
+            </div>
+        @elseif($underReviewRecord)
+            <!-- Already submitted – under review -->
+            <div class="border-0 shadow-lg card rounded-4">
+                <div class="py-8 text-center card-body">
+                    <h4 class="text-success fw-bold">
+                        Thank You! Your Profile Has Been Submitted
+                    </h4>
+                    <p class="mb-3 fs-5">
+                        Current Stage: <strong>{{ $underReviewRecord->current_stage->label() }}</strong>
+                    </p>
+                    <p class="text-muted">
+                        Who Acts Next: {{ $underReviewRecord->current_stage->nextActionLabel() }}
+                    </p>
+                    <div class="mt-4">
+                        <small class="text-muted">
+                            You will be notified when your profile is approved.
+                        </small>
                     </div>
-                @endif
-
-                <!-- ================================================================= -->
-                <!-- 3. REVIEWERS (Checker, Procurement, Legal, Finance, Directors)   -->
-                <!-- ================================================================= -->
-                @if(auth()->user()->hasAnyRole(['checker','procurement','legal','finance','directors']) ||
-                    in_array(session('demo_role'), ['checker','procurement','legal','finance','directors']))
+                </div>
+            </div>
+        @endif
+    </div>
+@endif
+                {{-- ======================================== --}}
+                {{-- 3. REVIEWERS SECTION --}}
+                {{-- ======================================== --}}
+                @if(
+                    auth()->user()->hasAnyRole(['checker', 'procurement', 'legal', 'finance', 'directors']) ||
+                    in_array(session('demo_role'), ['checker', 'procurement', 'legal', 'finance', 'directors'])
+                )
                     <div class="col-12">
-                        <h3 class="h4 fw-bold mb-4">Review Stages</h3>
+                        <h3 class="mb-4 h4 fw-bold">Review Stages</h3>
                         <div class="row g-4">
 
                             @php
                                 $stages = [
-                                    'checker_review'     => ['Checker Review', 'bg-primary'],
-                                    'procurement_review' => ['Procurement Review', 'bg-purple'],
-                                    'legal_review'       => ['Legal Review', 'bg-danger'],
-                                    'finance_review'     => ['Finance Review', 'bg-success'],
-                                    'directors_review'   => ['Directors Review', 'bg-warning text-dark'],
+                                    'checker_review'     => ['Checker Review',     'bg-primary'],
+                                    'procurement_review' => ['Procurement Review', 'bg-info'],
+                                    'legal_review'       => ['Legal Review',       'bg-danger'],
+                                    'finance_review'     => ['Finance Review',     'bg-success'],
+                                    'directors_review'   => ['Directors Review',   'bg-warning text-dark'],
                                 ];
                             @endphp
 
                             @foreach($stages as $stage => $data)
+                                @php
+                                    $count = \App\Models\Vendor::where('current_stage', $stage)->count();
+                                @endphp
+
                                 <div class="col-12 col-md-6 col-lg-4">
                                     <a href="{{ route('review.stage', $stage) }}"
-                                       class="card text-white border-0 shadow h-100 text-decoration-none rounded-4 overflow-hidden
-                                              bg-gradient {{ $data[1] === 'bg-purple' ? 'bg-gradient-purple' : $data[1] }}">
-                                        <div class="card-body text-center py-5">
+                                       class="card text-white border-0 shadow h-100 text-decoration-none rounded-4 overflow-hidden bg-gradient {{ $data[1] }}">
+                                        <div class="py-5 text-center card-body">
                                             <h5 class="fw-bold fs-4">{{ $data[0] }}</h5>
-                                            <p class="opacity-90">Click to review pending vendors</p>
-                                            @php
-                                                $count = \App\Models\Vendor::where('current_stage', $stage)->count();
-                                            @endphp
+                                            <p>Click to review pending vendors</p>
                                             @if($count > 0)
-                                                <span class="badge bg-white text-dark fs-6 px-4 py-2">{{ $count }} pending</span>
+                                                <span class="px-4 py-2 bg-white badge text-dark fs-6">{{ $count }} pending</span>
                                             @endif
                                         </div>
                                     </a>
                                 </div>
                             @endforeach
 
+                            <!-- Approved Vendors Card -->
                             <div class="col-12 col-md-6 col-lg-4">
                                 <a href="{{ route('approved.vendors') }}"
-                                   class="card text-white border-0 shadow h-100 text-decoration-none rounded-4 bg-gradient-success">
-                                    <div class="card-body text-center py-5">
+                                   class="text-white border-0 shadow card h-100 text-decoration-none rounded-4 bg-gradient-success">
+                                    <div class="py-5 text-center card-body">
                                         <h5 class="fw-bold fs-4">Approved Vendors</h5>
-                                        <p class="opacity-90">Master list of approved vendors</p>
+                                        <p>Master list of approved vendors</p>
                                     </div>
                                 </a>
                             </div>
@@ -176,17 +174,21 @@
                     </div>
                 @endif
 
-                <!-- Logged in info -->
-                <div class="col-12 mt-5">
-                    <div class="card border-0 shadow-sm rounded-4">
-                        <div class="card-body text-center py-5">
-                            <p class="fs-5 mb-2">
+                {{-- ======================================== --}}
+                {{-- USER INFO --}}
+                {{-- ======================================== --}}
+                <div class="mt-5 col-12">
+                    <div class="border-0 shadow-sm card rounded-4">
+                        <div class="py-5 text-center card-body">
+                            <p class="mb-2 fs-5">
                                 Logged in as <strong class="text-primary">{{ auth()->user()->name }}</strong>
                                 <span class="badge bg-secondary ms-2">
-                                    {{ auth()->user()->getRoleNames()->first() ?? 'No role' }}
+                                    {{ auth()->user()->getRoleNames()->implode(', ') ?: 'No role' }}
                                 </span>
                             </p>
-                            <small class="text-muted">Use the role switcher above to test any perspective instantly.</small>
+                            @if(session('demo_role'))
+                                <small class="text-muted">Demo mode active – use role switcher to test</small>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -194,14 +196,4 @@
             </div>
         </div>
     </div>
-
-    <!-- Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    
-    <style>
-        .bg-gradient-orange { background: linear-gradient(135deg, #f59e0b, #ea580c) !important; }
-        .bg-gradient-purple { background: linear-gradient(135deg, #8b5cf6, #ec4899) !important; }
-        .bg-gradient-success { background: linear-gradient(135deg, #10b981, #34d399) !important; }
-        .card:hover { transform: translateY(-8px); transition: all 0.3s ease; }
-    </style>
 </x-app-layout>

@@ -88,7 +88,7 @@ class VendorWorkflowService
             'with_vendor'       => 'Vendor is completing information',
             'checker_review'    => 'Waiting for Checker',
             'procurement_review'=> 'Waiting for Procurement',
-           UDO            => 'Waiting for Legal',
+             'legal_review'=> 'Waiting for Legal',
             'finance_review'    => 'Waiting for Finance',
             'directors_review'  => 'Waiting for Directors',
             'approved'          => 'Fully Approved',

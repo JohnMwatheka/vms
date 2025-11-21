@@ -40,7 +40,7 @@ Route::middleware('auth')->group(function () {
         })->name('switch.role');
 
         // 1. Initiator – Create Vendor
-        Route::view('/initiator/create', 'vendors.create')->name('vendor.create');
+        Route::view('/initiator/create', 'me.create')->name('vendor.create');
         Route::post('/vendor/store', VendorController::class)->name('vendor.store');
 
         // 2. Vendor Portal
