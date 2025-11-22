@@ -81,7 +81,7 @@ A fully functional, production-ready Vendor Onboarding & Approval Pipeline built
 ## How to Run (5 minutes)
 
 ```bash
-git clone https://github.com/yourusername/vms.git
+git clone [https://github.com/JohnMwatheka/vms.git](https://github.com/JohnMwatheka/vms.git)
 cd vms
 cp .env.example .env
 composer install
