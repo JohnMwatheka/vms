@@ -3,7 +3,7 @@
 
 A fully functional, production-ready Vendor Onboarding & Approval Pipeline built with Laravel 12.
 
-**Live end-to-end flow works perfectly in under 2 minutes** — from creation to final approval.
+**Live end-to-end flow** — from creation to final approval.
 
 ## Features Implemented
 
@@ -78,7 +78,7 @@ A fully functional, production-ready Vendor Onboarding & Approval Pipeline built
 - **Accessors/Mutators** for clean enum handling
 - **File Storage** (public disk)
 
-## How to Run (5 minutes)
+## How to Run
 
 ```bash
 git clone https://github.com/JohnMwatheka/vms.git
@@ -140,7 +140,7 @@ Click any role → instantly become that user → no login/logout needed!
 
 Perfect for presentation — switch perspectives in 1 second.
 
-## Recommended Demo Flow (90 seconds)
+## Demo flow using encoded demo data
 
 1. Click **Initiator** -Create vendor (use `vendor@test.com`)
 2. Click **"Send to Vendor"** on dashboard
@@ -150,13 +150,13 @@ Perfect for presentation — switch perspectives in 1 second.
 6. Final approve instantly appears in **Approved Vendors** list
 7. Show history timeline and document download
 
-## Architecture Highlights
+## Architecture
 
-- Clean separation: Models → Enums → Service → Controllers → Views
+- Clean separation: Models,Enums, Service, Controllers, Views
 - Full audit trail via `VendorHistory`
 - Real document upload with secure access
-- Email-based vendor portal (real-world pattern)
-- No fake "vendor" role — matches production systems
+- Email-based vendor portal 
+- No fake "vendor" role
 - Role switcher makes demo flawless
 
 ## Assumptions & Smart Decisions
@@ -169,6 +169,9 @@ Real file uploads not just names
 
 
 
+
+
+## LARAVEL Default Readme.md
 
 
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
