@@ -133,12 +133,6 @@ All passwords: `password`
   * Role: none (identified by email match)
 
 
-## Instant Testing – Use the Role Switcher!
-
-**Best feature:** Top of every page → **"Demo Role Switcher"**  
-Click any role → instantly become that user → no login/logout needed!
-
-Perfect for presentation — switch perspectives in 1 second.
 
 ## Demo flow using encoded demo data
 
