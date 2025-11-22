@@ -62,4 +62,9 @@ Route::post('/vendor/send-to-vendor/{vendor}', function (Vendor $vendor, VendorW
     return back()->with('success', 'Vendor sent to portal!');
 })->name('vendor.send');
 
+
+// routes/web.php
+Route::post('/vendor/upload-document', [VendorPortalController::class, 'uploadDocument'])
+    ->name('vendor.upload.document')
+    ->middleware('auth');
 require __DIR__.'/auth.php';

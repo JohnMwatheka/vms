@@ -6,6 +6,7 @@ use App\Models\Vendor;
 use App\Services\VendorWorkflowService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\VendorDocument;
 
 class VendorPortalController extends Controller
 {
@@ -37,4 +38,30 @@ class VendorPortalController extends Controller
         return redirect()->route('dashboard')
             ->with('success', 'Your vendor profile is complete! Submitted for Checker Review.');
     }
+    public function uploadDocument(Request $request)
+{
+    $request->validate([
+        'document' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240', // 10MB max
+        'type'     => 'required|string|max:255',
+    ]);
+
+    $vendor = $request->vendor;
+
+    // Security: Only allow upload if vendor owns this record and is in "with_vendor" stage
+    if ($vendor->email !== auth()->user()->email || $vendor->current_stage !== 'with_vendor') {
+        abort(403, 'Unauthorized');
+    }
+
+    $file = $request->file('document');
+    $path = $file->store('vendor-documents/' . $vendor->id, 'public');
+
+    VendorDocument::create([
+        'vendor_id'      => $vendor->id,
+        'path'           => $path,
+        'original_name'  => $file->getClientOriginalName(),
+        'type'           => $request->type,
+    ]);
+
+    return back()->with('success', 'Document uploaded successfully!');
+}
 }
