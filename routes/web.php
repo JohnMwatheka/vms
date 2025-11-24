@@ -65,6 +65,7 @@ Route::post('/vendor/send-to-vendor/{vendor}', function (Vendor $vendor, VendorW
 
 // routes/web.php
 Route::post('/vendor/upload-document', [VendorPortalController::class, 'uploadDocument'])
-    ->name('vendor.upload.document')
-    ->middleware('auth');
+    ->middleware('auth')
+    ->name('vendor.upload.document');
+
 require __DIR__.'/auth.php';

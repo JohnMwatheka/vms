@@ -5,20 +5,57 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+        <!-- Primary Meta Tags -->
+        <title>Vendor Management System – Secure Vendor Onboarding & Approval Pipeline</title>
+        <meta name="title" content="Vendor Management System – Secure Vendor Onboarding & Approval Pipeline">
+        <meta name="description" content="A secure, role-based vendor management system with 8-stage approval workflow: Initiator → Vendor → Checker → Procurement → Legal → Finance → Directors → Approved. Built with Laravel 12.">
+
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="{{ url()->current() }}">
+        <meta property="og:title" content="Vendor Management System – Secure Vendor Onboarding & Approval Pipeline">
+        <meta property="og:description" content="Enterprise-grade vendor approval workflow with role-based access, audit trail, document upload, and instant demo role switching.">
+        <meta property="og:image" content="{{ asset('images/og-preview.jpg') }}"> <!-- Optional: add a 1200x630 preview image -->
+        <meta property="og:site_name" content="{{ config('app.name') }}">
+
+        <!-- Twitter -->
+        <meta property="twitter:card" content="summary_large_image">
+        <meta property="twitter:url" content="{{ url()->current() }}">
+        <meta property="twitter:title" content="Vendor Management System – Laravel 12 Take-Home Project">
+        <meta property="twitter:description" content="Full 8-stage vendor approval system with role switcher, history, and production-ready code.">
+        <meta property="twitter:image" content="{{ asset('images/og-preview.jpg') }}">
+
+        <!-- Favicon (recommended to have these) -->
+        <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+        <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
+        <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}">
+        <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}">
+
+        <!-- Theme Color -->
+        <meta name="theme-color" content="#6366f1"> <!-- Indigo-500 -->
+
+        <!-- Robots -->
+        <meta name="robots" content="noindex, nofollow"> <!-- Change to "index, follow" in production if public -->
+
+        <!-- Canonical URL -->
+        <link rel="canonical" href="{{ url()->current() }}">
+
+        <!-- Performance & Preload -->
+        <link rel="preconnect" href="https://fonts.bunny.net">
+        <link rel="preconnect" href="https://cdn.jsdelivr.net">
+        <link rel="dns-prefetch" href="//fonts.bunny.net">
+        <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
 
         <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
         <!-- Bootstrap CSS -->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-        
-        <!-- Scripts -->
+
+        <!-- App CSS -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
-        
+
         <style>
-            /* Ensure Tailwind utilities take precedence over Bootstrap */
             .font-sans { font-family: Figtree, sans-serif !important; }
             .bg-gray-100 { background-color: #f7fafc !important; }
             .bg-white { background-color: #ffffff !important; }
@@ -34,7 +71,7 @@
             <!-- Page Heading -->
             @isset($header)
                 <header class="bg-white shadow">
-                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                    <div class="px-4 py-6 mx-auto max-w-7xl sm:px-6 lg:px-8">
                         {{ $header }}
                     </div>
                 </header>
